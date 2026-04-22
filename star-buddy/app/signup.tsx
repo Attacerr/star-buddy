@@ -1,14 +1,74 @@
-import { Link } from "expo-router";
+import { useState } from "react";
+import { Link, useRouter } from "expo-router";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
 } from "react-native";
+import { useAuth } from "../context/AuthContext";
 
 export default function Signup() {
+  const { login } = useAuth();
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
+
+  const handleSignup = async () => {
+    if (!email || !password || !confirmPassword) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Signup failed");
+        return;
+      }
+
+      // Save token to context and storage
+      await login(data.token, email);
+
+      // Navigate to index screen
+      router.replace("/");
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <ScrollView
       style={styles.scrollView}
@@ -22,15 +82,7 @@ export default function Signup() {
 
       {/* Form */}
       <View style={styles.form}>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="John Doe"
-            placeholderTextColor="#999"
-            editable={false}
-          />
-        </View>
+        {error && <Text style={styles.errorText}>{error}</Text>}
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Email</Text>
@@ -38,7 +90,11 @@ export default function Signup() {
             style={styles.input}
             placeholder="you@example.com"
             placeholderTextColor="#999"
-            editable={false}
+            value={email}
+            onChangeText={setEmail}
+            editable={!loading}
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
         </View>
 
@@ -48,8 +104,10 @@ export default function Signup() {
             style={styles.input}
             placeholder="••••••••"
             placeholderTextColor="#999"
+            value={password}
+            onChangeText={setPassword}
             secureTextEntry
-            editable={false}
+            editable={!loading}
           />
         </View>
 
@@ -59,8 +117,10 @@ export default function Signup() {
             style={styles.input}
             placeholder="••••••••"
             placeholderTextColor="#999"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
             secureTextEntry
-            editable={false}
+            editable={!loading}
           />
         </View>
 
@@ -74,8 +134,16 @@ export default function Signup() {
         </View>
 
         {/* Signup Button */}
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Sign Up</Text>
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleSignup}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Sign Up</Text>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -120,6 +188,13 @@ const styles = StyleSheet.create({
   form: {
     flex: 1,
   },
+  errorText: {
+    color: "#FF3B30",
+    fontSize: 14,
+    marginBottom: 16,
+    textAlign: "center",
+    fontWeight: "500",
+  },
   inputGroup: {
     marginBottom: 20,
   },
@@ -145,16 +220,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
   },
-  linkText: {
-    color: "#007AFF",
-    fontWeight: "600",
-  },
   button: {
     backgroundColor: "#007AFF",
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: "center",
     marginBottom: 20,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: "#fff",
@@ -168,6 +242,11 @@ const styles = StyleSheet.create({
   },
   footerText: {
     color: "#666",
+    fontSize: 14,
+  },
+  linkText: {
+    color: "#007AFF",
+    fontWeight: "600",
     fontSize: 14,
   },
 });

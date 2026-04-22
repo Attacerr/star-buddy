@@ -1,13 +1,63 @@
-import { Link } from "expo-router";
+import { useState } from "react";
+import { Link, useRouter } from "expo-router";
 import {
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
+  const { login } = useAuth();
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3000";
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Login failed");
+        return;
+      }
+
+      // Save token to context and storage
+      await login(data.token, email);
+
+      // Navigate to index screen
+      router.replace("/");
+    } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -18,13 +68,19 @@ export default function Login() {
 
       {/* Form */}
       <View style={styles.form}>
+        {error && <Text style={styles.errorText}>{error}</Text>}
+
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Email</Text>
           <TextInput
             style={styles.input}
             placeholder="you@example.com"
             placeholderTextColor="#999"
-            editable={false}
+            value={email}
+            onChangeText={setEmail}
+            editable={!loading}
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
         </View>
 
@@ -34,8 +90,10 @@ export default function Login() {
             style={styles.input}
             placeholder="••••••••"
             placeholderTextColor="#999"
+            value={password}
+            onChangeText={setPassword}
             secureTextEntry
-            editable={false}
+            editable={!loading}
           />
         </View>
 
@@ -45,8 +103,16 @@ export default function Login() {
         </TouchableOpacity>
 
         {/* Login Button */}
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Login</Text>
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Login</Text>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -88,6 +154,13 @@ const styles = StyleSheet.create({
   form: {
     flex: 1,
   },
+  errorText: {
+    color: "#FF3B30",
+    fontSize: 14,
+    marginBottom: 16,
+    textAlign: "center",
+    fontWeight: "500",
+  },
   inputGroup: {
     marginBottom: 20,
   },
@@ -120,6 +193,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
     marginBottom: 20,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: "#fff",
