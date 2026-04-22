@@ -1,34 +1,48 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, ImageBackground } from "react-native";
+import { useRouter } from "expo-router";
 
 export default function Index() {
+  const router = useRouter();
+
   return (
-    <View style={styles.container}>
+    <ImageBackground
+      source={require("../assets/images/starsbackground.jpg")}
+      style={styles.container}
+    >
       <View style={styles.header}>
         <Text style={styles.title}>Star Buddy</Text>
         <Text style={styles.subtitle}>Explore the Universe</Text>
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push("/explore")}
+        >
           <Text style={styles.buttonText}>Explore</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Favorites</Text>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push("/iss")}
+        >
+          <Text style={styles.buttonText}>ISS Location</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push("/profile")}
+        >
           <Text style={styles.buttonText}>Profile</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
     paddingHorizontal: 20,
     justifyContent: "space-around",
     alignItems: "center",
@@ -40,12 +54,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 40,
     fontWeight: "bold",
-    color: "#1a1a1a",
+    color: "#fff",
     marginBottom: 8,
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
   },
   subtitle: {
     fontSize: 16,
-    color: "#666",
+    color: "#e0e0e0",
+    textShadowColor: "rgba(0, 0, 0, 0.75)",
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
   },
   buttonContainer: {
     width: "100%",
@@ -56,6 +76,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: "center",
+    opacity: 0.9,
   },
   buttonText: {
     color: "#fff",
