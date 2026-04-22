@@ -17,32 +17,7 @@ function RootLayoutNav() {
     <Stack screenOptions={{ headerShown: false }}>
       {isSignedIn ? (
         // Logged in screens
-        <>
-          <Stack.Screen
-            name="index"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="explore"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="iss"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="profile"
-            options={{
-              headerShown: false,
-            }}
-          />
-        </>
+         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       ) : (
         // Auth screens
         <>

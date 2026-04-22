@@ -6,7 +6,7 @@ export default function Index() {
 
   return (
     <ImageBackground
-      source={require("../assets/images/starsbackground.jpg")}
+      source={require("../../assets/images/starsbackground.jpg")}
       style={styles.container}
     >
       <View style={styles.header}>
